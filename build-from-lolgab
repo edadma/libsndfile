@@ -1,0 +1,33 @@
+ThisBuild / scalaVersion := "2.13.4"
+
+val sharedSettings = Seq(
+  // some shared settings if you have
+)
+
+lazy val shared = project // all your shared code in shared/src/main/scala
+  .enablePlugins(ScalaNativePlugin)
+  .settings(
+    sharedSettings
+  )
+
+lazy val binary = project // the main for your binary
+  // .in(file("folder-name")) // you can customize the folder name if you want otherwise it's "binary"
+  .enablePlugins(ScalaNativePlugin)
+  .settings(
+    sharedSettings
+    // here the settings for the binary
+  )
+  .dependsOn(shared)
+
+lazy val library = project // the exported object for your dynamic library
+  // .in(file("folder-name")) // you can customize the folder name if you want otherwise it's library
+  .enablePlugins(ScalaNativePlugin)
+  .settings(
+    sharedSettings
+    // here the settings to create a shared library
+  )
+  .dependsOn(shared)
+
+lazy val root = project
+  .in(file("."))
+  .aggregate(shared, library, binary)
