@@ -1,4 +1,4 @@
-package io.github.edadma._sn_template
+import io.github.edadma.libsndfile.facade._
 
 object Main extends App {
 

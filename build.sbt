@@ -1,4 +1,4 @@
-name := "-sn-template"
+name := "libsndfile"
 
 version := "0.1.0"
 
@@ -12,7 +12,12 @@ nativeMode := "debug"
 
 nativeLinkingOptions := Seq(s"-L/${baseDirectory.value}/native-lib")
 
-scalacOptions ++= Seq( "-deprecation", "-feature", "-unchecked", "-language:postfixOps", "-language:implicitConversions", "-language:existentials" )
+scalacOptions ++= Seq("-deprecation",
+                      "-feature",
+                      "-unchecked",
+                      "-language:postfixOps",
+                      "-language:implicitConversions",
+                      "-language:existentials")
 
 organization := "io.github.edadma"
 
@@ -26,7 +31,7 @@ resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releas
 
 resolvers += Resolver.githubPackages("edadma")
 
-Compile / mainClass := Some( s"${organization.value}.${name.value.replace('-', '_')}.Main" )
+Compile / mainClass := Some(s"${organization.value}.${name.value.replace('-', '_')}.Main")
 
 licenses := Seq("ISC" -> url("https://opensource.org/licenses/ISC"))
 
@@ -42,7 +47,9 @@ publishMavenStyle := true
 
 Test / publishArtifact := false
 
-pomIncludeRepository := { _ => false }
+pomIncludeRepository := { _ =>
+  false
+}
 
 pomExtra :=
   <scm>
