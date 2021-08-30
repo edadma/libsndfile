@@ -7,8 +7,8 @@ import scala.scalanative.unsafe._
 package object facade {
 
   class FormatType(val value: CInt) extends AnyVal {
-    def |(subtype: FormatSubtype): FormatType = new FormatType(value | subtype.value)
-    def |(endian: Endian): FormatType         = new FormatType(value | endian.value)
+    def subtype(subtype: FormatSubtype): FormatType = new FormatType(value | subtype.value)
+    def endian(endian: Endian): FormatType          = new FormatType(value | endian.value)
   }
 
   lazy val SF_FORMAT_WAV   = new FormatType(0x10000)
@@ -78,7 +78,13 @@ package object facade {
   lazy val SF_ENDIAN_BIG    = new Endian(0x20000000)
   lazy val SF_ENDIAN_CPU    = new Endian(0x30000000)
 
-//  lazy val SF_FORMAT_SUBMASK  = 0xffff
+  class Mode(val value: CInt) extends AnyVal
+
+  lazy val SFM_READ  = new Mode(0x10)
+  lazy val SFM_WRITE = new Mode(0x20)
+  lazy val SFM_RDWR  = new Mode(0x30)
+
+  //  lazy val SF_FORMAT_SUBMASK  = 0xffff
 //  lazy val SF_FORMAT_TYPEMASK = 0xfff0000)
 //  lazy val SF_FORMAT_ENDMASK  = 0x30000000)
 
@@ -212,7 +218,12 @@ package object facade {
     lazy val SF_CHANNEL_MAP_MAX                   = new _6(27)
   }
 
-  case class SFInfo(frames: Long, samplerate: Int, channels: Int, format: FormatType, sections: Int, seekable: Int)
+  case class SFInfo(frames: Long,
+                    samplerate: Int,
+                    channels: Int,
+                    format: FormatType,
+                    sections: Int = 0,
+                    seekable: Int = 0)
 
   implicit class SFInfoOps(val sf_info: Ptr[sf.SF_INFO]) extends AnyVal {
     def frames: Long       = sf_info._1
@@ -232,7 +243,7 @@ package object facade {
 
   implicit class Sndfile(val ptr: Ptr[sf.SNDFILE]) extends AnyVal {}
 
-  def sf_open(path: String, mode: Int, sfinfo: SFInfo): (Sndfile, SFInfo) = Zone { implicit z =>
+  def sf_open(path: String, mode: Mode, sfinfo: SFInfo): (Sndfile, SFInfo) = Zone { implicit z =>
     val sfinfop = stackalloc[sf.SF_INFO]
 
     sfinfop.frames = sfinfo.frames
@@ -241,8 +252,7 @@ package object facade {
     sfinfop.format = sfinfo.format
     sfinfop.sections = sfinfo.sections
     sfinfop.seekable = sfinfo.seekable
-
-    (sf.sf_open(toCString(path), mode, sfinfop),
+    (sf.sf_open(toCString(path), mode.value, sfinfop),
      SFInfo(sfinfop.frames, sfinfop.samplerate, sfinfop.channels, sfinfop.format, sfinfop.sections, sfinfop.seekable))
   }
 
