@@ -1,5 +1,7 @@
 package io.github.edadma.libsndfile.extern
 
+import io.github.edadma.libsndfile.facade.FormatType
+
 import scala.scalanative.unsafe._
 
 @link("sndfile")

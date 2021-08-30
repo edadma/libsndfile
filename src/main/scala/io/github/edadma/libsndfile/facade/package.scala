@@ -78,15 +78,6 @@ package object facade {
   lazy val SF_ENDIAN_BIG    = new Endian(0x20000000)
   lazy val SF_ENDIAN_CPU    = new Endian(0x30000000)
 
-  class SFInfo(val sf_info: Ptr[sf.SF_INFO]) extends AnyVal {
-    def frames: Long       = sf_info._1
-    def samplerate: Int    = sf_info._2
-    def channels: Int      = sf_info._3
-    def format: FormatType = new FormatType(sf_info._4)
-    def sections: Int      = sf_info._5
-    def seekable: Int      = sf_info._6
-  }
-
 //  lazy val SF_FORMAT_SUBMASK  = 0xffff
 //  lazy val SF_FORMAT_TYPEMASK = 0xfff0000)
 //  lazy val SF_FORMAT_ENDMASK  = 0x30000000)
@@ -221,8 +212,38 @@ package object facade {
     lazy val SF_CHANNEL_MAP_MAX                   = new _6(27)
   }
 
-  def sf_open(path: String, mode: Int, sfinfo: Ptr[SF_INFO]): Ptr[SNDFILE] = Zone { implicit z =>
-    sf.sf_open(toCString(path), mode, )
+  case class SFInfo(frames: Long, samplerate: Int, channels: Int, format: FormatType, sections: Int, seekable: Int)
+
+  implicit class SFInfoOps(val sf_info: Ptr[sf.SF_INFO]) extends AnyVal {
+    def frames: Long       = sf_info._1
+    def samplerate: Int    = sf_info._2
+    def channels: Int      = sf_info._3
+    def format: FormatType = new FormatType(sf_info._4)
+    def sections: Int      = sf_info._5
+    def seekable: Int      = sf_info._6
+
+    def frames_=(v: Long): Unit       = sf_info._1 = v
+    def samplerate_=(v: Int): Unit    = sf_info._2 = v
+    def channels_=(v: Int): Unit      = sf_info._3 = v
+    def format_=(v: FormatType): Unit = sf_info._4 = v.value
+    def sections_=(v: Int): Unit      = sf_info._5 = v
+    def seekable_=(v: Int): Unit      = sf_info._6 = v
+  }
+
+  implicit class Sndfile(val ptr: Ptr[sf.SNDFILE]) extends AnyVal {}
+
+  def sf_open(path: String, mode: Int, sfinfo: SFInfo): (Sndfile, SFInfo) = Zone { implicit z =>
+    val sfinfop = stackalloc[sf.SF_INFO]
+
+    sfinfop.frames = sfinfo.frames
+    sfinfop.samplerate = sfinfo.samplerate
+    sfinfop.channels = sfinfo.channels
+    sfinfop.format = sfinfo.format
+    sfinfop.sections = sfinfo.sections
+    sfinfop.seekable = sfinfo.seekable
+
+    (sf.sf_open(toCString(path), mode, sfinfop),
+     SFInfo(sfinfop.frames, sfinfop.samplerate, sfinfop.channels, sfinfop.format, sfinfop.sections, sfinfop.seekable))
   }
 
 }
