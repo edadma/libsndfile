@@ -76,9 +76,7 @@ package object facade {
   lazy val SF_ENDIAN_BIG    = new Endian(0x20000000)
   lazy val SF_ENDIAN_CPU    = new Endian(0x30000000)
 
-  type sf_count_t = CLong
 
-  type SF_INFO = CStruct6[sf_count_t, CInt, CInt, CInt, CInt, CInt]
 
   /*
   struct SF_INFO
