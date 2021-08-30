@@ -11,6 +11,6 @@ object LibSndfile {
 
   type SF_INFO = CStruct6[sf_count_t, CInt, CInt, CInt, CInt, CInt]
 
-  def f_open(path: CString, mode: CInt, sfinfo: Ptr[SF_INFO]): Ptr[SNDFILE] = extern
+  def sf_open(path: CString, mode: CInt, sfinfo: Ptr[SF_INFO]): Ptr[SNDFILE] = extern
 
 }

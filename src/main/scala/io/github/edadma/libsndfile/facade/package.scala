@@ -1,5 +1,7 @@
 package io.github.edadma.libsndfile
 
+import io.github.edadma.libsndfile.extern.{LibSndfile => sf}
+
 import scala.scalanative.unsafe._
 
 package object facade {
@@ -76,18 +78,14 @@ package object facade {
   lazy val SF_ENDIAN_BIG    = new Endian(0x20000000)
   lazy val SF_ENDIAN_CPU    = new Endian(0x30000000)
 
-
-
-  /*
-  struct SF_INFO
-{	sf_count_t	frames ;		/* Used to be called samples.  Changed to avoid confusion. */
-	int			samplerate ;
-	int			channels ;
-	int			format ;
-	int			sections ;
-	int			seekable ;
-} ;
-   */
+  class SFInfo(val sf_info: Ptr[sf.SF_INFO]) extends AnyVal {
+    def frames: Long       = sf_info._1
+    def samplerate: Int    = sf_info._2
+    def channels: Int      = sf_info._3
+    def format: FormatType = new FormatType(sf_info._4)
+    def sections: Int      = sf_info._5
+    def seekable: Int      = sf_info._6
+  }
 
 //  lazy val SF_FORMAT_SUBMASK  = 0xffff
 //  lazy val SF_FORMAT_TYPEMASK = 0xfff0000)
@@ -221,6 +219,10 @@ package object facade {
     lazy val SF_CHANNEL_MAP_AMBISONIC_B_Y         = new _6(25)
     lazy val SF_CHANNEL_MAP_AMBISONIC_B_Z         = new _6(26)
     lazy val SF_CHANNEL_MAP_MAX                   = new _6(27)
+  }
+
+  def sf_open(path: String, mode: Int, sfinfo: Ptr[SF_INFO]): Ptr[SNDFILE] = Zone { implicit z =>
+    sf.sf_open(toCString(path), mode, )
   }
 
 }
