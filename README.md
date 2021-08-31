@@ -44,7 +44,7 @@ import io.github.edadma.libsndfile.facade._
 Example
 -------
 
-This example is a direct translation of the [make_sine](https://github.com/libsndfile/libsndfile/blob/master/examples/make_sine.c) example in the C library repository.  It generates a [WAV](https://en.wikipedia.org/wiki/WAV) uncompressed audio file called "sine.wav", which plays a 4 second 440Hz (A440) sound.
+This example is a direct translation of the [make_sine](https://github.com/libsndfile/libsndfile/blob/master/examples/make_sine.c) example in the C library repository.  It generates a [WAV](https://en.wikipedia.org/wiki/WAV) uncompressed audio file called "sine.wav", which plays a 4-second sound at 344Hz in the left channel and 466Hz in the right channel.
 
 ```scala
 import math._
