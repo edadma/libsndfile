@@ -21,9 +21,15 @@ To use this library, `libsndfile1-dev` needs to be installed:
 sudo apt install libsndfile1-dev
 ```
 
+Include the following in your `project/plugins.sbt`:
+
+```sbt
+addSbtPlugin("com.codecommit" % "sbt-github-packages" % "0.5.2")
+```
+
 Include the following in your `build.sbt`:
 
-```scala
+```sbt
 resolvers += Resolver.githubPackages("edadma")
 
 libraryDependencies += "io.github.edadma" %%% "libsndfile" % "0.1.0"
