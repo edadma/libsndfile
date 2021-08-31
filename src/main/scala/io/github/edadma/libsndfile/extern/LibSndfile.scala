@@ -15,4 +15,6 @@ object LibSndfile {
 
   def sf_open(path: CString, mode: CInt, sfinfo: Ptr[SF_INFO]): Ptr[SNDFILE] = extern
 
+  def sf_write_int(sndfile: Ptr[SNDFILE], ptr: Ptr[CInt], items: sf_count_t): sf_count_t = extern
+
 }

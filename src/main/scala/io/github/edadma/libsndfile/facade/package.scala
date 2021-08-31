@@ -3,6 +3,7 @@ package io.github.edadma.libsndfile
 import io.github.edadma.libsndfile.extern.{LibSndfile => sf}
 
 import scala.scalanative.unsafe._
+import scala.scalanative.unsigned._
 
 package object facade {
 
@@ -241,7 +242,16 @@ package object facade {
     def seekable_=(v: Int): Unit      = sf_info._6 = v
   }
 
-  implicit class Sndfile(val ptr: Ptr[sf.SNDFILE]) extends AnyVal {}
+  implicit class Sndfile(val sndfile: Ptr[sf.SNDFILE]) extends AnyVal {
+    def sf_write_int(f: Long => Int, items: Long): Long = Zone { implicit z =>
+      val buf = if (items > 1024) alloc[CInt](items.toULong) else stackalloc[CInt](items.toULong)
+
+      for (i <- 0L until items)
+        buf(i) = f(i)
+
+      sf.sf_write_int(sndfile, buf, items)
+    }
+  }
 
   def sf_open(path: String, mode: Mode, sfinfo: SFInfo): (Sndfile, SFInfo) = Zone { implicit z =>
     val sfinfop = stackalloc[sf.SF_INFO]

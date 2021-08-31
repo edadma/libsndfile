@@ -31,7 +31,7 @@ resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releas
 
 resolvers += Resolver.githubPackages("edadma")
 
-Compile / mainClass := Some(s"${organization.value}.${name.value.replace('-', '_')}.Main")
+Compile / mainClass := Some("Main")
 
 licenses := Seq("ISC" -> url("https://opensource.org/licenses/ISC"))
 
