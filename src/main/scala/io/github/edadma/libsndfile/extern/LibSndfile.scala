@@ -1,7 +1,5 @@
 package io.github.edadma.libsndfile.extern
 
-import io.github.edadma.libsndfile.facade.FormatType
-
 import scala.scalanative.unsafe._
 
 @link("sndfile")
@@ -16,5 +14,9 @@ object LibSndfile {
   def sf_open(path: CString, mode: CInt, sfinfo: Ptr[SF_INFO]): Ptr[SNDFILE] = extern
 
   def sf_write_int(sndfile: Ptr[SNDFILE], ptr: Ptr[CInt], items: sf_count_t): sf_count_t = extern
+
+  def sf_close(sndfile: Ptr[SNDFILE]): CInt = extern
+
+  def sf_strerror(sndfile: Ptr[SNDFILE]): CString = extern
 
 }
