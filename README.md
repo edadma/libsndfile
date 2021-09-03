@@ -32,7 +32,7 @@ Include the following in your `build.sbt`:
 ```sbt
 resolvers += Resolver.githubPackages("edadma")
 
-libraryDependencies += "io.github.edadma" %%% "libsndfile" % "0.1.0"
+libraryDependencies += "io.github.edadma" %%% "libsndfile" % "0.1.1"
 ```
 
 Use the following `import` in your code:
