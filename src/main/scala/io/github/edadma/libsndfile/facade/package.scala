@@ -242,7 +242,15 @@ package object facade {
     def seekable_=(v: Int): Unit      = sf_info._6 = v
   }
 
-  implicit class Sndfile(val sndfile: Ptr[sf.SNDFILE]) extends AnyVal {
+  implicit class SFError(val num: CInt) extends AnyVal
+
+  lazy val SF_ERR_NO_ERROR: SFError             = SFError(0)
+  lazy val SF_ERR_UNRECOGNISED_FORMAT: SFError  = SFError(1)
+  lazy val SF_ERR_SYSTEM: SFError               = SFError(2)
+  lazy val SF_ERR_MALFORMED_FILE: SFError       = SFError(3)
+  lazy val SF_ERR_UNSUPPORTED_ENCODING: SFError = SFError(4)
+
+  implicit class Sndfile(val sndfile: sf.SNDFILE) extends AnyVal {
 
     def write_int(f: Int => Int, items: Int): Int = Zone { implicit z =>
       val buf = alloc[CInt](items.toULong)
@@ -253,9 +261,15 @@ package object facade {
       sf.sf_write_int(sndfile, buf, items).toInt
     }
 
-    def close: Int = sf.sf_close(sndfile)
+    def sf_error: SFError = sf.sf_error(sndfile)
 
     def strerror: String = fromCString(sf.sf_strerror(sndfile))
+
+    def sf_error_number(error: SFError): String = fromCString(sf.sf_error_number(error.num))
+
+    def close: SFError = sf.sf_close(sndfile)
+
+    def sf_write_sync(): Unit = sf.sf_write_sync(sndfile)
 
   }
 
@@ -270,6 +284,20 @@ package object facade {
     sfinfop.seekable = sfinfo.seekable
     (sf.sf_open(toCString(path), mode.value, sfinfop),
      SFInfo(sfinfop.frames, sfinfop.samplerate, sfinfop.channels, sfinfop.format, sfinfop.sections, sfinfop.seekable))
+  }
+
+  def sf_format_check(sfinfo: SFInfo): Boolean = Zone { implicit z =>
+    val sfinfop = stackalloc[sf.SF_INFO]
+
+    sfinfop.frames = sfinfo.frames
+    sfinfop.samplerate = sfinfo.samplerate
+    sfinfop.channels = sfinfo.channels
+    sfinfop.format = sfinfo.format
+    sfinfop.sections = sfinfo.sections
+    sfinfop.seekable = sfinfo.seekable
+
+    if (sf.sf_format_check(sfinfop) == 0) false
+    else true
   }
 
 }
