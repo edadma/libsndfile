@@ -317,17 +317,24 @@ package object facade {
 sf_command (sndfile, SFC_GET_CURRENT_SF_INFO, sfinfo, sizeof (SF_INFO)) ;
 
      */
-    def read_shortf(dst: mutable.Seq[Short], items: Int): Int = Zone { implicit z =>
-      val buf   = if (items > 1024) alloc[CShort](items.toUInt) else stackalloc[CShort](items.toUInt)
-      val count = sf.sf_read_short(sndfile, buf, items).toInt
 
-      for (i <- 0 until count)
+    def readf_short(dst: mutable.Seq[Short], frames: Int): Int = Zone { implicit z =>
+      val sfinfo = stackalloc[sf.SF_INFO]
+
+      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
+
+      val channels = sfinfo.channels
+      val samples  = channels * frames
+      val buf      = if (frames > 1024) alloc[CShort](samples.toUInt) else stackalloc[CShort](samples.toUInt)
+      val count    = sf.sf_readf_short(sndfile, buf, frames).toInt
+
+      for (i <- 0 until channels * count)
         dst(i) = buf(i)
 
       count
     }
 
-    def read_intf(dst: mutable.Seq[Int], items: Int): Int = Zone { implicit z =>
+    def readf_int(dst: mutable.Seq[Int], items: Int): Int = Zone { implicit z =>
       val buf   = if (items > 1024) alloc[CInt](items.toUInt) else stackalloc[CInt](items.toUInt)
       val count = sf.sf_read_int(sndfile, buf, items).toInt
 
@@ -337,7 +344,7 @@ sf_command (sndfile, SFC_GET_CURRENT_SF_INFO, sfinfo, sizeof (SF_INFO)) ;
       count
     }
 
-    def read_floatf(dst: mutable.Seq[Float], items: Int): Int = Zone { implicit z =>
+    def readf_float(dst: mutable.Seq[Float], items: Int): Int = Zone { implicit z =>
       val buf   = if (items > 1024) alloc[CFloat](items.toUInt) else stackalloc[CFloat](items.toUInt)
       val count = sf.sf_read_float(sndfile, buf, items).toInt
 
@@ -347,7 +354,7 @@ sf_command (sndfile, SFC_GET_CURRENT_SF_INFO, sfinfo, sizeof (SF_INFO)) ;
       count
     }
 
-    def read_doublef(dst: mutable.Seq[Double], items: Int): Int = Zone { implicit z =>
+    def readf_double(dst: mutable.Seq[Double], items: Int): Int = Zone { implicit z =>
       val buf   = if (items > 1024) alloc[CDouble](items.toUInt) else stackalloc[CDouble](items.toUInt)
       val count = sf.sf_read_double(sndfile, buf, items).toInt
 
@@ -375,7 +382,7 @@ sf_command (sndfile, SFC_GET_CURRENT_SF_INFO, sfinfo, sizeof (SF_INFO)) ;
       sf.sf_write_int(sndfile, buf, items).toInt
     }
 
-    def write_float(src: Int => Int, items: Int): Int = Zone { implicit z =>
+    def write_float(src: Int => Float, items: Int): Int = Zone { implicit z =>
       val buf = if (items > 1024) alloc[CFloat](items.toUInt) else stackalloc[CFloat](items.toUInt)
 
       for (i <- 0 until items)
@@ -384,7 +391,7 @@ sf_command (sndfile, SFC_GET_CURRENT_SF_INFO, sfinfo, sizeof (SF_INFO)) ;
       sf.sf_write_float(sndfile, buf, items).toInt
     }
 
-    def write_double(src: Int => Int, items: Int): Int = Zone { implicit z =>
+    def write_double(src: Int => Double, items: Int): Int = Zone { implicit z =>
       val buf = if (items > 1024) alloc[CDouble](items.toUInt) else stackalloc[CDouble](items.toUInt)
 
       for (i <- 0 until items)
@@ -392,6 +399,8 @@ sf_command (sndfile, SFC_GET_CURRENT_SF_INFO, sfinfo, sizeof (SF_INFO)) ;
 
       sf.sf_write_double(sndfile, buf, items).toInt
     }
+
+//    def sf_command(cmd: Command, data: Ptr[Byte], datasize: CInt): CInt = sf.sf_command(sndfile, cmd.value)
 
   }
 

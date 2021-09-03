@@ -34,5 +34,6 @@ object LibSndfile {
   def sf_writef_int(sndfile: SNDFILE, ptr: Ptr[CInt], frames: sf_count_t): sf_count_t       = extern
   def sf_writef_float(sndfile: SNDFILE, ptr: Ptr[CFloat], frames: sf_count_t): sf_count_t   = extern
   def sf_writef_double(sndfile: SNDFILE, ptr: Ptr[CDouble], frames: sf_count_t): sf_count_t = extern
+  def sf_command(sndfile: SNDFILE, cmd: CInt, data: Ptr[Byte], datasize: CInt): CInt        = extern
 
 }
