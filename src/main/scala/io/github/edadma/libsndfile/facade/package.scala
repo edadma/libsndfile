@@ -159,20 +159,37 @@ package object facade {
   lazy val SFC_SET_ADD_DITHER_ON_WRITE: Command    = Command(0x1070)
   lazy val SFC_SET_ADD_DITHER_ON_READ: Command     = Command(0x1071)
 
-//  class _3(val value: CInt) extends AnyVal
-//  object _3 {
-//    lazy val SF_STR_TITLE       = new _3(0x1)
-//    lazy val SF_STR_COPYRIGHT   = new _3(0x2)
-//    lazy val SF_STR_SOFTWARE    = new _3(0x3)
-//    lazy val SF_STR_ARTIST      = new _3(0x4)
-//    lazy val SF_STR_COMMENT     = new _3(0x5)
-//    lazy val SF_STR_DATE        = new _3(0x6)
-//    lazy val SF_STR_ALBUM       = new _3(0x7)
-//    lazy val SF_STR_LICENSE     = new _3(0x8)
-//    lazy val SF_STR_TRACKNUMBER = new _3(0x9)
-//    lazy val SF_STR_GENRE       = new _3(0x10)
-//  }
-//
+  object Field {
+    def iterator: Iterator[Field] =
+      new Iterator[Field] {
+        private var cur = SF_STR_FIRST.value - 1
+
+        def hasNext: Boolean = cur < SF_STR_LAST.value
+
+        def next: Field =
+          if (hasNext) {
+            cur += 1
+            cur
+          } else
+            throw new NoSuchElementException("no more string fields")
+      }
+  }
+
+  implicit class Field(val value: CInt) extends AnyVal
+
+  lazy val SF_STR_FIRST: Field = SF_STR_TITLE
+  lazy val SF_STR_TITLE        = new Field(0x1)
+  lazy val SF_STR_COPYRIGHT    = new Field(0x2)
+  lazy val SF_STR_SOFTWARE     = new Field(0x3)
+  lazy val SF_STR_ARTIST       = new Field(0x4)
+  lazy val SF_STR_COMMENT      = new Field(0x5)
+  lazy val SF_STR_DATE         = new Field(0x6)
+  lazy val SF_STR_ALBUM        = new Field(0x7)
+  lazy val SF_STR_LICENSE      = new Field(0x8)
+  lazy val SF_STR_TRACKNUMBER  = new Field(0x9)
+  lazy val SF_STR_GENRE        = new Field(0x10)
+  lazy val SF_STR_LAST: Field  = SF_STR_GENRE
+
 //  class _4(val value: CInt) extends AnyVal
 //  object _4 {
 //    lazy val SF_FALSE              = new _4(0)
@@ -472,6 +489,13 @@ package object facade {
       sf.sf_writef_double(sndfile, buf, frames).toInt
     }
 
+    def sf_get_string(field: Field): String = fromCString(sf.sf_get_string(sndfile, field.value))
+
+    def sf_set_string(field: Field, str: String): SFError =
+      Zone(implicit z => sf.sf_set_string(sndfile, field.value, toCString(str)))
+
+    def sf_current_byterate: Int = sf.sf_current_byterate(sndfile)
+
 //    def sf_command(cmd: Command, data: Ptr[Byte], datasize: CInt): CInt = sf.sf_command(sndfile, cmd.value)
 
   }
@@ -502,5 +526,7 @@ package object facade {
     if (sf.sf_format_check(sfinfop) == 0) false
     else true
   }
+
+  def sf_version_string: String = fromCString(sf.sf_version_string)
 
 }
