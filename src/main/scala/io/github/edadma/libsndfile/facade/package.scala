@@ -100,7 +100,7 @@ package object facade {
 
   lazy val SFC_GET_LIB_VERSION: Command            = Command(0x1000)
   lazy val SFC_GET_LOG_INFO: Command               = Command(0x1001)
-  lazy val SFC_GET_CURRENT_SF_INFO: Command        = Command(0x1002)
+  lazy val SFC_GET_CURRENT_SF_INFO: Command        = Command(0x1002) //
   lazy val SFC_GET_NORM_DOUBLE: Command            = Command(0x1010)
   lazy val SFC_GET_NORM_FLOAT: Command             = Command(0x1011)
   lazy val SFC_SET_NORM_DOUBLE: Command            = Command(0x1012)
@@ -242,12 +242,7 @@ package object facade {
 //    lazy val SF_CHANNEL_MAP_MAX                   = new _6(27)
 //  }
 
-  case class SFInfo(frames: Long,
-                    samplerate: Int,
-                    channels: Int,
-                    format: FormatType,
-                    sections: Int = 0,
-                    seekable: Boolean = false)
+  case class SFInfo(frames: Long, samplerate: Int, channels: Int, format: FormatType, sections: Int, seekable: Boolean)
 
   implicit class SFInfoOps(val sf_info: Ptr[sf.SF_INFO]) extends AnyVal {
     def frames: Long       = sf_info._1
@@ -501,7 +496,6 @@ package object facade {
       val sfinfo = stackalloc[sf.SF_INFO]
 
       sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
-
       SFInfo(sfinfo.frames,
              sfinfo.samplerate,
              sfinfo.channels,
@@ -512,23 +506,24 @@ package object facade {
 
   }
 
-  def sf_open(path: String, mode: Mode, sfinfo: SFInfo): (Sndfile, SFInfo) = Zone { implicit z =>
-    val sfinfop = stackalloc[sf.SF_INFO]
+  def sf_open(path: String, mode: Mode, sfinfo: SFInfo = SFInfo(0, 0, 0, 0, 0, seekable = false)): (Sndfile, SFInfo) =
+    Zone { implicit z =>
+      val sfinfop = stackalloc[sf.SF_INFO]
 
-    sfinfop.frames = sfinfo.frames
-    sfinfop.samplerate = sfinfo.samplerate
-    sfinfop.channels = sfinfo.channels
-    sfinfop.format = sfinfo.format
-    sfinfop.sections = sfinfo.sections
-    sfinfop.seekable = if (sfinfo.seekable) 1 else 0
-    (sf.sf_open(toCString(path), mode.value, sfinfop),
-     SFInfo(sfinfop.frames,
-            sfinfop.samplerate,
-            sfinfop.channels,
-            sfinfop.format,
-            sfinfop.sections,
-            if (sfinfop.seekable == 0) false else true))
-  }
+      sfinfop.frames = sfinfo.frames
+      sfinfop.samplerate = sfinfo.samplerate
+      sfinfop.channels = sfinfo.channels
+      sfinfop.format = sfinfo.format
+      sfinfop.sections = sfinfo.sections
+      sfinfop.seekable = if (sfinfo.seekable) 1 else 0
+      (sf.sf_open(toCString(path), mode.value, sfinfop),
+       SFInfo(sfinfop.frames,
+              sfinfop.samplerate,
+              sfinfop.channels,
+              sfinfop.format,
+              sfinfop.sections,
+              if (sfinfop.seekable == 0) false else true))
+    }
 
   def sf_format_check(sfinfo: SFInfo): Boolean = Zone { implicit z =>
     val sfinfop = stackalloc[sf.SF_INFO]
