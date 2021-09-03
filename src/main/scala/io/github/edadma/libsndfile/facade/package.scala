@@ -247,7 +247,7 @@ package object facade {
                     channels: Int,
                     format: FormatType,
                     sections: Int = 0,
-                    seekable: Int = 0)
+                    seekable: Boolean = false)
 
   implicit class SFInfoOps(val sf_info: Ptr[sf.SF_INFO]) extends AnyVal {
     def frames: Long       = sf_info._1
@@ -497,6 +497,18 @@ package object facade {
     def sf_current_byterate: Int = sf.sf_current_byterate(sndfile)
 
 //    def sf_command(cmd: Command, data: Ptr[Byte], datasize: CInt): CInt = sf.sf_command(sndfile, cmd.value)
+    def getCurrentSFInfo: SFInfo = {
+      val sfinfo = stackalloc[sf.SF_INFO]
+
+      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
+
+      SFInfo(sfinfo.frames,
+             sfinfo.samplerate,
+             sfinfo.channels,
+             sfinfo.format,
+             sfinfo.sections,
+             if (sfinfo.seekable == 0) false else true)
+    }
 
   }
 
@@ -508,9 +520,14 @@ package object facade {
     sfinfop.channels = sfinfo.channels
     sfinfop.format = sfinfo.format
     sfinfop.sections = sfinfo.sections
-    sfinfop.seekable = sfinfo.seekable
+    sfinfop.seekable = if (sfinfo.seekable) 1 else 0
     (sf.sf_open(toCString(path), mode.value, sfinfop),
-     SFInfo(sfinfop.frames, sfinfop.samplerate, sfinfop.channels, sfinfop.format, sfinfop.sections, sfinfop.seekable))
+     SFInfo(sfinfop.frames,
+            sfinfop.samplerate,
+            sfinfop.channels,
+            sfinfop.format,
+            sfinfop.sections,
+            if (sfinfop.seekable == 0) false else true))
   }
 
   def sf_format_check(sfinfo: SFInfo): Boolean = Zone { implicit z =>
@@ -521,7 +538,7 @@ package object facade {
     sfinfop.channels = sfinfo.channels
     sfinfop.format = sfinfo.format
     sfinfop.sections = sfinfo.sections
-    sfinfop.seekable = sfinfo.seekable
+    sfinfop.seekable = if (sfinfo.seekable) 1 else 0
 
     if (sf.sf_format_check(sfinfop) == 0) false
     else true
