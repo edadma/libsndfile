@@ -1,4 +1,4 @@
-package io.github.edadma.libsndfile.extern
+package io.github.edadma.libsndfile
 
 import scala.scalanative.unsafe.Nat._
 import scala.scalanative.unsafe._

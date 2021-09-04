@@ -1,9 +1,10 @@
 package io.github.edadma
 
-import io.github.edadma.libsndfile.extern.{LibSndfile => sf}
+import io.github.edadma.libsndfile.{LibSndfile => sf}
 
 import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
+
 import scala.scalanative.libc.stdlib
 import scala.scalanative.unsafe._
 import scala.scalanative.unsigned._
@@ -231,7 +232,7 @@ package object libsndfile {
                   sections: Int = 0,
                   seekable: Boolean = false)
 
-  implicit class InfoOps(val info: Ptr[sf.INFO]) extends AnyVal {
+  implicit class InfoOps(val info: Ptr[LibSndfile.INFO]) extends AnyVal {
     def frames: Long       = info._1
     def samplerate: Int    = info._2
     def channels: Int      = info._3
@@ -251,7 +252,7 @@ package object libsndfile {
 
   private val fileMap = new mutable.HashMap[Sndfile, mutable.HashSet[Ptr[Byte]]]
 
-  implicit class ChunkInfoOps(val info: Ptr[sf.CHUNK_INFO]) extends AnyVal {
+  implicit class ChunkInfoOps(val info: Ptr[LibSndfile.CHUNK_INFO]) extends AnyVal {
     def id: String = {
       val arr = new Array[Byte](info._2.toInt)
 
@@ -283,9 +284,9 @@ package object libsndfile {
   lazy val ERR_MALFORMED_FILE: Error       = Error(3)
   lazy val ERR_UNSUPPORTED_ENCODING: Error = Error(4)
 
-  implicit class ChunkIterator(val iterator: sf.CHUNK_ITERATOR) extends AnyVal {}
+  implicit class ChunkIterator(val iterator: LibSndfile.CHUNK_ITERATOR) extends AnyVal {}
 
-  implicit class Sndfile(val sndfile: sf.SNDFILE) extends AnyVal {
+  implicit class Sndfile(val sndfile: LibSndfile.SNDFILE) extends AnyVal {
 
     def seek(frames: Int, whence: Whence): Int = seekl(frames, whence).toInt
 
@@ -351,9 +352,12 @@ package object libsndfile {
     }
 
     def readf_short(dst: mutable.Seq[Short], frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.INFO]
+      val sfinfo = stackalloc[LibSndfile.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
+      sf.sf_command(sndfile,
+                    SFC_GET_CURRENT_SF_INFO.value,
+                    sfinfo.asInstanceOf[Ptr[Byte]],
+                    sizeof[LibSndfile.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -367,9 +371,12 @@ package object libsndfile {
     }
 
     def readf_int(dst: mutable.Seq[Int], frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.INFO]
+      val sfinfo = stackalloc[LibSndfile.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
+      sf.sf_command(sndfile,
+                    SFC_GET_CURRENT_SF_INFO.value,
+                    sfinfo.asInstanceOf[Ptr[Byte]],
+                    sizeof[LibSndfile.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -383,9 +390,12 @@ package object libsndfile {
     }
 
     def readf_float(dst: mutable.Seq[Float], frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.INFO]
+      val sfinfo = stackalloc[LibSndfile.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
+      sf.sf_command(sndfile,
+                    SFC_GET_CURRENT_SF_INFO.value,
+                    sfinfo.asInstanceOf[Ptr[Byte]],
+                    sizeof[LibSndfile.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -399,9 +409,12 @@ package object libsndfile {
     }
 
     def readf_double(dst: mutable.Seq[Double], frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.INFO]
+      val sfinfo = stackalloc[LibSndfile.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
+      sf.sf_command(sndfile,
+                    SFC_GET_CURRENT_SF_INFO.value,
+                    sfinfo.asInstanceOf[Ptr[Byte]],
+                    sizeof[LibSndfile.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -451,9 +464,12 @@ package object libsndfile {
     }
 
     def writef_short(src: Int => Short, frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.INFO]
+      val sfinfo = stackalloc[LibSndfile.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
+      sf.sf_command(sndfile,
+                    SFC_GET_CURRENT_SF_INFO.value,
+                    sfinfo.asInstanceOf[Ptr[Byte]],
+                    sizeof[LibSndfile.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -466,9 +482,12 @@ package object libsndfile {
     }
 
     def writef_int(src: Int => Int, frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.INFO]
+      val sfinfo = stackalloc[LibSndfile.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
+      sf.sf_command(sndfile,
+                    SFC_GET_CURRENT_SF_INFO.value,
+                    sfinfo.asInstanceOf[Ptr[Byte]],
+                    sizeof[LibSndfile.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -481,9 +500,12 @@ package object libsndfile {
     }
 
     def writef_float(src: Int => Float, frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.INFO]
+      val sfinfo = stackalloc[LibSndfile.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
+      sf.sf_command(sndfile,
+                    SFC_GET_CURRENT_SF_INFO.value,
+                    sfinfo.asInstanceOf[Ptr[Byte]],
+                    sizeof[LibSndfile.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -496,9 +518,12 @@ package object libsndfile {
     }
 
     def writef_double(src: Int => Double, frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.INFO]
+      val sfinfo = stackalloc[LibSndfile.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
+      sf.sf_command(sndfile,
+                    SFC_GET_CURRENT_SF_INFO.value,
+                    sfinfo.asInstanceOf[Ptr[Byte]],
+                    sizeof[LibSndfile.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -518,7 +543,7 @@ package object libsndfile {
     def current_byterate: Int = sf.sf_current_byterate(sndfile)
 
     def get_chunk_iterator(chunk: ChunkInfo): ChunkIterator = {
-      val info = stackalloc[sf.CHUNK_INFO]
+      val info = stackalloc[LibSndfile.CHUNK_INFO]
 
       info.id = chunk.id
       sf.sf_get_chunk_iterator(sndfile, info)
@@ -526,9 +551,12 @@ package object libsndfile {
 
     //    def sf_command(cmd: Command, data: Ptr[Byte], datasize: CInt): CInt = sf.sf_command(sndfile, cmd.value)
     def getCurrentSFInfo: Info = {
-      val sfinfo = stackalloc[sf.INFO]
+      val sfinfo = stackalloc[LibSndfile.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
+      sf.sf_command(sndfile,
+                    SFC_GET_CURRENT_SF_INFO.value,
+                    sfinfo.asInstanceOf[Ptr[Byte]],
+                    sizeof[LibSndfile.INFO].toInt)
       Info(sfinfo.frames,
            sfinfo.samplerate,
            sfinfo.channels,
@@ -539,9 +567,9 @@ package object libsndfile {
 
   }
 
-  def open(path: String, mode: Mode, sfinfo: Info = Info(0, 0, 0, 0, 0, seekable = false)): (Sndfile, Info) =
+  def open(path: String, mode: Mode, sfinfo: Info = Info(0, 0, 0, 0)): (Sndfile, Info) =
     Zone { implicit z =>
-      val sfinfop = stackalloc[sf.INFO]
+      val sfinfop = stackalloc[LibSndfile.INFO]
 
       sfinfop.frames = sfinfo.frames
       sfinfop.samplerate = sfinfo.samplerate
@@ -559,7 +587,7 @@ package object libsndfile {
     }
 
   def format_check(sfinfo: Info): Boolean = Zone { implicit z =>
-    val sfinfop = stackalloc[sf.INFO]
+    val sfinfop = stackalloc[LibSndfile.INFO]
 
     sfinfop.frames = sfinfo.frames
     sfinfop.samplerate = sfinfo.samplerate
