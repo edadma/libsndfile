@@ -2,7 +2,9 @@ package io.github.edadma.libsndfile
 
 import io.github.edadma.libsndfile.extern.{LibSndfile => sf}
 
+import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
+import scala.scalanative.libc.stdlib
 import scala.scalanative.unsafe._
 import scala.scalanative.unsigned._
 
@@ -190,26 +192,6 @@ package object facade {
   lazy val SF_STR_GENRE        = new Field(0x10)
   lazy val SF_STR_LAST: Field  = SF_STR_GENRE
 
-//  class _4(val value: CInt) extends AnyVal
-//  object _4 {
-//    lazy val SF_FALSE              = new _4(0)
-//    lazy val SF_TRUE               = new _4(1)
-//    lazy val SFM_READ              = new _4(0x10)
-//    lazy val SFM_WRITE             = new _4(0x20)
-//    lazy val SFM_RDWR              = new _4(0x30)
-//    lazy val SF_AMBISONIC_NONE     = new _4(0x40)
-//    lazy val SF_AMBISONIC_B_FORMAT = new _4(0x41)
-//  }
-//
-//  class _5(val value: CInt) extends AnyVal
-//  object _5 {
-//    lazy val SF_ERR_NO_ERROR             = new _5(0)
-//    lazy val SF_ERR_UNRECOGNISED_FORMAT  = new _5(1)
-//    lazy val SF_ERR_SYSTEM               = new _5(2)
-//    lazy val SF_ERR_MALFORMED_FILE       = new _5(3)
-//    lazy val SF_ERR_UNSUPPORTED_ENCODING = new _5(4)
-//  }
-//
 //  class _6(val value: CInt) extends AnyVal
 //  object _6 {
 //    lazy val SF_CHANNEL_MAP_INVALID               = new _6(0)
@@ -244,20 +226,39 @@ package object facade {
 
   case class SFInfo(frames: Long, samplerate: Int, channels: Int, format: FormatType, sections: Int, seekable: Boolean)
 
-  implicit class SFInfoOps(val sf_info: Ptr[sf.SF_INFO]) extends AnyVal {
-    def frames: Long       = sf_info._1
-    def samplerate: Int    = sf_info._2
-    def channels: Int      = sf_info._3
-    def format: FormatType = new FormatType(sf_info._4)
-    def sections: Int      = sf_info._5
-    def seekable: Int      = sf_info._6
+  implicit class SFInfoOps(val info: Ptr[sf.SF_INFO]) extends AnyVal {
+    def frames: Long       = info._1
+    def samplerate: Int    = info._2
+    def channels: Int      = info._3
+    def format: FormatType = new FormatType(info._4)
+    def sections: Int      = info._5
+    def seekable: Int      = info._6
 
-    def frames_=(v: Long): Unit       = sf_info._1 = v
-    def samplerate_=(v: Int): Unit    = sf_info._2 = v
-    def channels_=(v: Int): Unit      = sf_info._3 = v
-    def format_=(v: FormatType): Unit = sf_info._4 = v.value
-    def sections_=(v: Int): Unit      = sf_info._5 = v
-    def seekable_=(v: Int): Unit      = sf_info._6 = v
+    def frames_=(v: Long): Unit       = info._1 = v
+    def samplerate_=(v: Int): Unit    = info._2 = v
+    def channels_=(v: Int): Unit      = info._3 = v
+    def format_=(v: FormatType): Unit = info._4 = v.value
+    def sections_=(v: Int): Unit      = info._5 = v
+    def seekable_=(v: Int): Unit      = info._6 = v
+  }
+
+  case class SFChunkInfo(id: String, data: ArraySeq[Byte])
+
+  private val fileMap = new mutable.HashMap[Sndfile, mutable.HashSet[Ptr[Byte]]]
+
+  implicit class SFChunkInfoOps(val info: Ptr[sf.SF_CHUNK_INFO]) extends AnyVal {
+    def id: String = {
+      val arr = new Array[Byte](info._2.toInt)
+
+      for (i <- arr.indices)
+        arr(i) = !info._1.at(i)
+
+      new String(arr)
+    }
+
+    def datalen: Int = info._3.toInt
+
+    def data: ArraySeq[Byte] = {}
   }
 
   implicit class SFError(val num: CInt) extends AnyVal
@@ -267,22 +268,29 @@ package object facade {
   lazy val SF_ERR_SYSTEM: SFError               = SFError(2)
   lazy val SF_ERR_MALFORMED_FILE: SFError       = SFError(3)
   lazy val SF_ERR_UNSUPPORTED_ENCODING: SFError = SFError(4)
-
   implicit class Sndfile(val sndfile: sf.SNDFILE) extends AnyVal {
 
-    def sf_seek(frames: Int, whence: Whence): Int = sf_seekl(frames, whence).toInt
+    def seek(frames: Int, whence: Whence): Int = seekl(frames, whence).toInt
 
-    def sf_seekl(frames: Long, whence: Whence): Long = sf.sf_seek(sndfile, frames, whence.value)
+    def seekl(frames: Long, whence: Whence): Long = sf.sf_seek(sndfile, frames, whence.value)
 
-    def sf_error: SFError = sf.sf_error(sndfile)
+    def error: SFError = sf.sf_error(sndfile)
 
     def strerror: String = fromCString(sf.sf_strerror(sndfile))
 
-    def sf_error_number(error: SFError): String = fromCString(sf.sf_error_number(error.num))
+    def error_number(error: SFError): String = fromCString(sf.sf_error_number(error.num))
 
-    def close: SFError = sf.sf_close(sndfile)
+    def close: SFError = {
+      val res = sf.sf_close(sndfile)
 
-    def sf_write_sync(): Unit = sf.sf_write_sync(sndfile)
+      for (c <- fileMap(sndfile)) {
+        stdlib.free(c.chunck.asInstanceOf[Ptr[Byte]])
+      }
+
+      res
+    }
+
+    def write_sync(): Unit = sf.sf_write_sync(sndfile)
 
     def read_short(dst: mutable.Seq[Short], items: Int): Int = Zone { implicit z =>
       val buf   = if (items > 1024) alloc[CShort](items.toUInt) else stackalloc[CShort](items.toUInt)
@@ -484,12 +492,12 @@ package object facade {
       sf.sf_writef_double(sndfile, buf, frames).toInt
     }
 
-    def sf_get_string(field: Field): String = fromCString(sf.sf_get_string(sndfile, field.value))
+    def get_string(field: Field): String = fromCString(sf.sf_get_string(sndfile, field.value))
 
-    def sf_set_string(field: Field, str: String): SFError =
+    def set_string(field: Field, str: String): SFError =
       Zone(implicit z => sf.sf_set_string(sndfile, field.value, toCString(str)))
 
-    def sf_current_byterate: Int = sf.sf_current_byterate(sndfile)
+    def current_byterate: Int = sf.sf_current_byterate(sndfile)
 
 //    def sf_command(cmd: Command, data: Ptr[Byte], datasize: CInt): CInt = sf.sf_command(sndfile, cmd.value)
     def getCurrentSFInfo: SFInfo = {
@@ -506,7 +514,7 @@ package object facade {
 
   }
 
-  def sf_open(path: String, mode: Mode, sfinfo: SFInfo = SFInfo(0, 0, 0, 0, 0, seekable = false)): (Sndfile, SFInfo) =
+  def open(path: String, mode: Mode, sfinfo: SFInfo = SFInfo(0, 0, 0, 0, 0, seekable = false)): (Sndfile, SFInfo) =
     Zone { implicit z =>
       val sfinfop = stackalloc[sf.SF_INFO]
 
@@ -525,7 +533,7 @@ package object facade {
               if (sfinfop.seekable == 0) false else true))
     }
 
-  def sf_format_check(sfinfo: SFInfo): Boolean = Zone { implicit z =>
+  def format_check(sfinfo: SFInfo): Boolean = Zone { implicit z =>
     val sfinfop = stackalloc[sf.SF_INFO]
 
     sfinfop.frames = sfinfo.frames
@@ -539,6 +547,6 @@ package object facade {
     else true
   }
 
-  def sf_version_string: String = fromCString(sf.sf_version_string)
+  def version_string: String = fromCString(sf.sf_version_string)
 
 }

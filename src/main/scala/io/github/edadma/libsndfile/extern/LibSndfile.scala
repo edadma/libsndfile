@@ -1,14 +1,16 @@
 package io.github.edadma.libsndfile.extern
 
+import scala.scalanative.unsafe.Nat._
 import scala.scalanative.unsafe._
 
 @link("sndfile")
 @extern
 object LibSndfile {
 
-  type sf_count_t = CLong
-  type SNDFILE    = Ptr[Byte]
-  type SF_INFO    = CStruct6[sf_count_t, CInt, CInt, CInt, CInt, CInt]
+  type sf_count_t    = CLong
+  type SNDFILE       = Ptr[Byte]
+  type SF_INFO       = CStruct6[sf_count_t, CInt, CInt, CInt, CInt, CInt]
+  type SF_CHUNK_INFO = CStruct4[CArray[CChar, Digit2[_6, _4]], CUnsignedInt, CUnsignedInt, Ptr[Byte]]
 
   def sf_open(path: CString, mode: CInt, sfinfo: Ptr[SF_INFO]): SNDFILE                     = extern
   def sf_format_check(sfinfo: Ptr[SF_INFO]): CInt                                           = extern
