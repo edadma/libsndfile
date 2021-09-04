@@ -7,13 +7,14 @@ import scala.scalanative.unsafe._
 @extern
 object LibSndfile {
 
-  type sf_count_t    = CLong
-  type SNDFILE       = Ptr[Byte]
-  type SF_INFO       = CStruct6[sf_count_t, CInt, CInt, CInt, CInt, CInt]
-  type SF_CHUNK_INFO = CStruct4[CArray[CChar, Digit2[_6, _4]], CUnsignedInt, CUnsignedInt, Ptr[Byte]]
+  type sf_count_t     = CLong
+  type SNDFILE        = Ptr[Byte]
+  type CHUNK_ITERATOR = Ptr[Byte]
+  type INFO           = CStruct6[sf_count_t, CInt, CInt, CInt, CInt, CInt]
+  type CHUNK_INFO     = CStruct4[CArray[CChar, Digit2[_6, _4]], CUnsignedInt, CUnsignedInt, Ptr[Byte]]
 
-  def sf_open(path: CString, mode: CInt, sfinfo: Ptr[SF_INFO]): SNDFILE                     = extern
-  def sf_format_check(sfinfo: Ptr[SF_INFO]): CInt                                           = extern
+  def sf_open(path: CString, mode: CInt, sfinfo: Ptr[INFO]): SNDFILE                        = extern
+  def sf_format_check(sfinfo: Ptr[INFO]): CInt                                              = extern
   def sf_seek(sndfile: SNDFILE, frames: sf_count_t, whence: CInt): sf_count_t               = extern
   def sf_error(sndfile: SNDFILE): CInt                                                      = extern
   def sf_strerror(sndfile: SNDFILE): CString                                                = extern
@@ -40,6 +41,7 @@ object LibSndfile {
   def sf_set_string(sndfile: SNDFILE, field: CInt, str: CString): CInt                      = extern
   def sf_version_string: CString                                                            = extern
   def sf_current_byterate(sndfile: SNDFILE): CInt                                           = extern
+  def sf_get_chunk_iterator(sndfile: SNDFILE, chuck_info: Ptr[CHUNK_INFO]): CHUNK_ITERATOR  = extern
 
   def sf_command(sndfile: SNDFILE, cmd: CInt, data: Ptr[Byte], datasize: CInt): CInt = extern
 

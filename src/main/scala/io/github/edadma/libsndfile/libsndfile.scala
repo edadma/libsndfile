@@ -1,4 +1,4 @@
-package io.github.edadma.libsndfile
+package io.github.edadma
 
 import io.github.edadma.libsndfile.extern.{LibSndfile => sf}
 
@@ -8,79 +8,79 @@ import scala.scalanative.libc.stdlib
 import scala.scalanative.unsafe._
 import scala.scalanative.unsigned._
 
-package object facade {
+package object libsndfile {
 
   implicit class FormatType(val value: CInt) extends AnyVal {
     def subtype(subtype: FormatSubtype): FormatType = FormatType(value | subtype.value)
     def endian(endian: Endian): FormatType          = FormatType(value | endian.value)
   }
 
-  lazy val SF_FORMAT_WAV: FormatType   = FormatType(0x10000)
-  lazy val SF_FORMAT_AIFF: FormatType  = FormatType(0x20000)
-  lazy val SF_FORMAT_AU: FormatType    = FormatType(0x30000)
-  lazy val SF_FORMAT_RAW: FormatType   = FormatType(0x40000)
-  lazy val SF_FORMAT_PAF: FormatType   = FormatType(0x50000)
-  lazy val SF_FORMAT_SVX: FormatType   = FormatType(0x60000)
-  lazy val SF_FORMAT_NIST: FormatType  = FormatType(0x70000)
-  lazy val SF_FORMAT_VOC: FormatType   = FormatType(0x80000)
-  lazy val SF_FORMAT_IRCAM: FormatType = FormatType(0xa0000)
-  lazy val SF_FORMAT_W64: FormatType   = FormatType(0xb0000)
-  lazy val SF_FORMAT_MAT4: FormatType  = FormatType(0xc0000)
-  lazy val SF_FORMAT_MAT5: FormatType  = FormatType(0xd0000)
-  lazy val SF_FORMAT_PVF: FormatType   = FormatType(0xe0000)
-  lazy val SF_FORMAT_XI: FormatType    = FormatType(0xf0000)
-  lazy val SF_FORMAT_HTK: FormatType   = FormatType(0x100000)
-  lazy val SF_FORMAT_SDS: FormatType   = FormatType(0x110000)
-  lazy val SF_FORMAT_AVR: FormatType   = FormatType(0x120000)
-  lazy val SF_FORMAT_WAVEX: FormatType = FormatType(0x130000)
-  lazy val SF_FORMAT_SD2: FormatType   = FormatType(0x160000)
-  lazy val SF_FORMAT_FLAC: FormatType  = FormatType(0x170000)
-  lazy val SF_FORMAT_CAF: FormatType   = FormatType(0x180000)
-  lazy val SF_FORMAT_WVE: FormatType   = FormatType(0x190000)
-  lazy val SF_FORMAT_OGG: FormatType   = FormatType(0x200000)
-  lazy val SF_FORMAT_MPC2K: FormatType = FormatType(0x210000)
-  lazy val SF_FORMAT_RF64: FormatType  = FormatType(0x220000)
+  lazy val FORMAT_WAV: FormatType   = FormatType(0x10000)
+  lazy val FORMAT_AIFF: FormatType  = FormatType(0x20000)
+  lazy val FORMAT_AU: FormatType    = FormatType(0x30000)
+  lazy val FORMAT_RAW: FormatType   = FormatType(0x40000)
+  lazy val FORMAT_PAF: FormatType   = FormatType(0x50000)
+  lazy val FORMAT_SVX: FormatType   = FormatType(0x60000)
+  lazy val FORMAT_NIST: FormatType  = FormatType(0x70000)
+  lazy val FORMAT_VOC: FormatType   = FormatType(0x80000)
+  lazy val FORMAT_IRCAM: FormatType = FormatType(0xa0000)
+  lazy val FORMAT_W64: FormatType   = FormatType(0xb0000)
+  lazy val FORMAT_MAT4: FormatType  = FormatType(0xc0000)
+  lazy val FORMAT_MAT5: FormatType  = FormatType(0xd0000)
+  lazy val FORMAT_PVF: FormatType   = FormatType(0xe0000)
+  lazy val FORMAT_XI: FormatType    = FormatType(0xf0000)
+  lazy val FORMAT_HTK: FormatType   = FormatType(0x100000)
+  lazy val FORMAT_SDS: FormatType   = FormatType(0x110000)
+  lazy val FORMAT_AVR: FormatType   = FormatType(0x120000)
+  lazy val FORMAT_WAVEX: FormatType = FormatType(0x130000)
+  lazy val FORMAT_SD2: FormatType   = FormatType(0x160000)
+  lazy val FORMAT_FLAC: FormatType  = FormatType(0x170000)
+  lazy val FORMAT_CAF: FormatType   = FormatType(0x180000)
+  lazy val FORMAT_WVE: FormatType   = FormatType(0x190000)
+  lazy val FORMAT_OGG: FormatType   = FormatType(0x200000)
+  lazy val FORMAT_MPC2K: FormatType = FormatType(0x210000)
+  lazy val FORMAT_RF64: FormatType  = FormatType(0x220000)
 
   implicit class FormatSubtype(val value: CInt) extends AnyVal
 
-  lazy val SF_FORMAT_PCM_S8: FormatSubtype       = FormatSubtype(0x1)
-  lazy val SF_FORMAT_PCM_16: FormatSubtype       = FormatSubtype(0x2)
-  lazy val SF_FORMAT_PCM_24: FormatSubtype       = FormatSubtype(0x3)
-  lazy val SF_FORMAT_PCM_32: FormatSubtype       = FormatSubtype(0x4)
-  lazy val SF_FORMAT_PCM_U8: FormatSubtype       = FormatSubtype(0x5)
-  lazy val SF_FORMAT_FLOAT: FormatSubtype        = FormatSubtype(0x6)
-  lazy val SF_FORMAT_DOUBLE: FormatSubtype       = FormatSubtype(0x7)
-  lazy val SF_FORMAT_ULAW: FormatSubtype         = FormatSubtype(0x10)
-  lazy val SF_FORMAT_ALAW: FormatSubtype         = FormatSubtype(0x11)
-  lazy val SF_FORMAT_IMA_ADPCM: FormatSubtype    = FormatSubtype(0x12)
-  lazy val SF_FORMAT_MS_ADPCM: FormatSubtype     = FormatSubtype(0x13)
-  lazy val SF_FORMAT_GSM610: FormatSubtype       = FormatSubtype(0x20)
-  lazy val SF_FORMAT_VOX_ADPCM: FormatSubtype    = FormatSubtype(0x21)
-  lazy val SF_FORMAT_NMS_ADPCM_16: FormatSubtype = FormatSubtype(0x22)
-  lazy val SF_FORMAT_NMS_ADPCM_24: FormatSubtype = FormatSubtype(0x23)
-  lazy val SF_FORMAT_NMS_ADPCM_32: FormatSubtype = FormatSubtype(0x24)
-  lazy val SF_FORMAT_G721_32: FormatSubtype      = FormatSubtype(0x30)
-  lazy val SF_FORMAT_G723_24: FormatSubtype      = FormatSubtype(0x31)
-  lazy val SF_FORMAT_G723_40: FormatSubtype      = FormatSubtype(0x32)
-  lazy val SF_FORMAT_DWVW_12: FormatSubtype      = FormatSubtype(0x40)
-  lazy val SF_FORMAT_DWVW_16: FormatSubtype      = FormatSubtype(0x41)
-  lazy val SF_FORMAT_DWVW_24: FormatSubtype      = FormatSubtype(0x42)
-  lazy val SF_FORMAT_DWVW_N: FormatSubtype       = FormatSubtype(0x43)
-  lazy val SF_FORMAT_DPCM_8: FormatSubtype       = FormatSubtype(0x50)
-  lazy val SF_FORMAT_DPCM_16: FormatSubtype      = FormatSubtype(0x51)
-  lazy val SF_FORMAT_VORBIS: FormatSubtype       = FormatSubtype(0x60)
-  lazy val SF_FORMAT_OPUS: FormatSubtype         = FormatSubtype(0x64)
-  lazy val SF_FORMAT_ALAC_16: FormatSubtype      = FormatSubtype(0x70)
-  lazy val SF_FORMAT_ALAC_20: FormatSubtype      = FormatSubtype(0x71)
-  lazy val SF_FORMAT_ALAC_24: FormatSubtype      = FormatSubtype(0x72)
-  lazy val SF_FORMAT_ALAC_32: FormatSubtype      = FormatSubtype(0x73)
+  lazy val FORMAT_PCM_S8: FormatSubtype       = FormatSubtype(0x1)
+  lazy val FORMAT_PCM_16: FormatSubtype       = FormatSubtype(0x2)
+  lazy val FORMAT_PCM_24: FormatSubtype       = FormatSubtype(0x3)
+  lazy val FORMAT_PCM_32: FormatSubtype       = FormatSubtype(0x4)
+  lazy val FORMAT_PCM_U8: FormatSubtype       = FormatSubtype(0x5)
+  lazy val FORMAT_FLOAT: FormatSubtype        = FormatSubtype(0x6)
+  lazy val FORMAT_DOUBLE: FormatSubtype       = FormatSubtype(0x7)
+  lazy val FORMAT_ULAW: FormatSubtype         = FormatSubtype(0x10)
+  lazy val FORMAT_ALAW: FormatSubtype         = FormatSubtype(0x11)
+  lazy val FORMAT_IMA_ADPCM: FormatSubtype    = FormatSubtype(0x12)
+  lazy val FORMAT_MS_ADPCM: FormatSubtype     = FormatSubtype(0x13)
+  lazy val FORMAT_GSM610: FormatSubtype       = FormatSubtype(0x20)
+  lazy val FORMAT_VOX_ADPCM: FormatSubtype    = FormatSubtype(0x21)
+  lazy val FORMAT_NMS_ADPCM_16: FormatSubtype = FormatSubtype(0x22)
+  lazy val FORMAT_NMS_ADPCM_24: FormatSubtype = FormatSubtype(0x23)
+  lazy val FORMAT_NMS_ADPCM_32: FormatSubtype = FormatSubtype(0x24)
+  lazy val FORMAT_G721_32: FormatSubtype      = FormatSubtype(0x30)
+  lazy val FORMAT_G723_24: FormatSubtype      = FormatSubtype(0x31)
+  lazy val FORMAT_G723_40: FormatSubtype      = FormatSubtype(0x32)
+  lazy val FORMAT_DWVW_12: FormatSubtype      = FormatSubtype(0x40)
+  lazy val FORMAT_DWVW_16: FormatSubtype      = FormatSubtype(0x41)
+  lazy val FORMAT_DWVW_24: FormatSubtype      = FormatSubtype(0x42)
+  lazy val FORMAT_DWVW_N: FormatSubtype       = FormatSubtype(0x43)
+  lazy val FORMAT_DPCM_8: FormatSubtype       = FormatSubtype(0x50)
+  lazy val FORMAT_DPCM_16: FormatSubtype      = FormatSubtype(0x51)
+  lazy val FORMAT_VORBIS: FormatSubtype       = FormatSubtype(0x60)
+  lazy val FORMAT_OPUS: FormatSubtype         = FormatSubtype(0x64)
+  lazy val FORMAT_ALAC_16: FormatSubtype      = FormatSubtype(0x70)
+  lazy val FORMAT_ALAC_20: FormatSubtype      = FormatSubtype(0x71)
+  lazy val FORMAT_ALAC_24: FormatSubtype      = FormatSubtype(0x72)
+  lazy val FORMAT_ALAC_32: FormatSubtype      = FormatSubtype(0x73)
 
   implicit class Endian(val value: CInt) extends AnyVal
 
-  lazy val SF_ENDIAN_FILE: Endian   = Endian(0x0)
-  lazy val SF_ENDIAN_LITTLE: Endian = Endian(0x10000000)
-  lazy val SF_ENDIAN_BIG: Endian    = Endian(0x20000000)
-  lazy val SF_ENDIAN_CPU: Endian    = Endian(0x30000000)
+  lazy val ENDIAN_FILE: Endian   = Endian(0x0)
+  lazy val ENDIAN_LITTLE: Endian = Endian(0x10000000)
+  lazy val ENDIAN_BIG: Endian    = Endian(0x20000000)
+  lazy val ENDIAN_CPU: Endian    = Endian(0x30000000)
 
   implicit class Mode(val value: CInt) extends AnyVal
 
@@ -164,11 +164,11 @@ package object facade {
   object Field {
     def iterator: Iterator[Field] =
       new Iterator[Field] {
-        private var cur = SF_STR_FIRST.value - 1
+        private var cur = STR_FIRST.value - 1
 
-        def hasNext: Boolean = cur < SF_STR_LAST.value
+        def hasNext: Boolean = cur < STR_LAST.value
 
-        def next: Field =
+        def next(): Field =
           if (hasNext) {
             cur += 1
             cur
@@ -179,54 +179,59 @@ package object facade {
 
   implicit class Field(val value: CInt) extends AnyVal
 
-  lazy val SF_STR_FIRST: Field = SF_STR_TITLE
-  lazy val SF_STR_TITLE        = new Field(0x1)
-  lazy val SF_STR_COPYRIGHT    = new Field(0x2)
-  lazy val SF_STR_SOFTWARE     = new Field(0x3)
-  lazy val SF_STR_ARTIST       = new Field(0x4)
-  lazy val SF_STR_COMMENT      = new Field(0x5)
-  lazy val SF_STR_DATE         = new Field(0x6)
-  lazy val SF_STR_ALBUM        = new Field(0x7)
-  lazy val SF_STR_LICENSE      = new Field(0x8)
-  lazy val SF_STR_TRACKNUMBER  = new Field(0x9)
-  lazy val SF_STR_GENRE        = new Field(0x10)
-  lazy val SF_STR_LAST: Field  = SF_STR_GENRE
+  lazy val STR_FIRST: Field = STR_TITLE
+  lazy val STR_TITLE        = new Field(0x1)
+  lazy val STR_COPYRIGHT    = new Field(0x2)
+  lazy val STR_SOFTWARE     = new Field(0x3)
+  lazy val STR_ARTIST       = new Field(0x4)
+  lazy val STR_COMMENT      = new Field(0x5)
+  lazy val STR_DATE         = new Field(0x6)
+  lazy val STR_ALBUM        = new Field(0x7)
+  lazy val STR_LICENSE      = new Field(0x8)
+  lazy val STR_TRACKNUMBER  = new Field(0x9)
+  lazy val STR_GENRE        = new Field(0x10)
+  lazy val STR_LAST: Field  = STR_GENRE
 
 //  class _6(val value: CInt) extends AnyVal
 //  object _6 {
-//    lazy val SF_CHANNEL_MAP_INVALID               = new _6(0)
-//    lazy val SF_CHANNEL_MAP_MONO                  = new _6(1)
-//    lazy val SF_CHANNEL_MAP_LEFT                  = new _6(2)
-//    lazy val SF_CHANNEL_MAP_RIGHT                 = new _6(3)
-//    lazy val SF_CHANNEL_MAP_CENTER                = new _6(4)
-//    lazy val SF_CHANNEL_MAP_FRONT_LEFT            = new _6(5)
-//    lazy val SF_CHANNEL_MAP_FRONT_RIGHT           = new _6(6)
-//    lazy val SF_CHANNEL_MAP_FRONT_CENTER          = new _6(7)
-//    lazy val SF_CHANNEL_MAP_REAR_CENTER           = new _6(8)
-//    lazy val SF_CHANNEL_MAP_REAR_LEFT             = new _6(9)
-//    lazy val SF_CHANNEL_MAP_REAR_RIGHT            = new _6(10)
-//    lazy val SF_CHANNEL_MAP_LFE                   = new _6(11)
-//    lazy val SF_CHANNEL_MAP_FRONT_LEFT_OF_CENTER  = new _6(12)
-//    lazy val SF_CHANNEL_MAP_FRONT_RIGHT_OF_CENTER = new _6(13)
-//    lazy val SF_CHANNEL_MAP_SIDE_LEFT             = new _6(14)
-//    lazy val SF_CHANNEL_MAP_SIDE_RIGHT            = new _6(15)
-//    lazy val SF_CHANNEL_MAP_TOP_CENTER            = new _6(16)
-//    lazy val SF_CHANNEL_MAP_TOP_FRONT_LEFT        = new _6(17)
-//    lazy val SF_CHANNEL_MAP_TOP_FRONT_RIGHT       = new _6(18)
-//    lazy val SF_CHANNEL_MAP_TOP_FRONT_CENTER      = new _6(19)
-//    lazy val SF_CHANNEL_MAP_TOP_REAR_LEFT         = new _6(20)
-//    lazy val SF_CHANNEL_MAP_TOP_REAR_RIGHT        = new _6(21)
-//    lazy val SF_CHANNEL_MAP_TOP_REAR_CENTER       = new _6(22)
-//    lazy val SF_CHANNEL_MAP_AMBISONIC_B_W         = new _6(23)
-//    lazy val SF_CHANNEL_MAP_AMBISONIC_B_X         = new _6(24)
-//    lazy val SF_CHANNEL_MAP_AMBISONIC_B_Y         = new _6(25)
-//    lazy val SF_CHANNEL_MAP_AMBISONIC_B_Z         = new _6(26)
-//    lazy val SF_CHANNEL_MAP_MAX                   = new _6(27)
+//    lazy val CHANNEL_MAP_INVALID               = new _6(0)
+//    lazy val CHANNEL_MAP_MONO                  = new _6(1)
+//    lazy val CHANNEL_MAP_LEFT                  = new _6(2)
+//    lazy val CHANNEL_MAP_RIGHT                 = new _6(3)
+//    lazy val CHANNEL_MAP_CENTER                = new _6(4)
+//    lazy val CHANNEL_MAP_FRONT_LEFT            = new _6(5)
+//    lazy val CHANNEL_MAP_FRONT_RIGHT           = new _6(6)
+//    lazy val CHANNEL_MAP_FRONT_CENTER          = new _6(7)
+//    lazy val CHANNEL_MAP_REAR_CENTER           = new _6(8)
+//    lazy val CHANNEL_MAP_REAR_LEFT             = new _6(9)
+//    lazy val CHANNEL_MAP_REAR_RIGHT            = new _6(10)
+//    lazy val CHANNEL_MAP_LFE                   = new _6(11)
+//    lazy val CHANNEL_MAP_FRONT_LEFT_OF_CENTER  = new _6(12)
+//    lazy val CHANNEL_MAP_FRONT_RIGHT_OF_CENTER = new _6(13)
+//    lazy val CHANNEL_MAP_SIDE_LEFT             = new _6(14)
+//    lazy val CHANNEL_MAP_SIDE_RIGHT            = new _6(15)
+//    lazy val CHANNEL_MAP_TOP_CENTER            = new _6(16)
+//    lazy val CHANNEL_MAP_TOP_FRONT_LEFT        = new _6(17)
+//    lazy val CHANNEL_MAP_TOP_FRONT_RIGHT       = new _6(18)
+//    lazy val CHANNEL_MAP_TOP_FRONT_CENTER      = new _6(19)
+//    lazy val CHANNEL_MAP_TOP_REAR_LEFT         = new _6(20)
+//    lazy val CHANNEL_MAP_TOP_REAR_RIGHT        = new _6(21)
+//    lazy val CHANNEL_MAP_TOP_REAR_CENTER       = new _6(22)
+//    lazy val CHANNEL_MAP_AMBISONIC_B_W         = new _6(23)
+//    lazy val CHANNEL_MAP_AMBISONIC_B_X         = new _6(24)
+//    lazy val CHANNEL_MAP_AMBISONIC_B_Y         = new _6(25)
+//    lazy val CHANNEL_MAP_AMBISONIC_B_Z         = new _6(26)
+//    lazy val CHANNEL_MAP_MAX                   = new _6(27)
 //  }
 
-  case class SFInfo(frames: Long, samplerate: Int, channels: Int, format: FormatType, sections: Int, seekable: Boolean)
+  case class Info(frames: Long,
+                  samplerate: Int,
+                  channels: Int,
+                  format: FormatType,
+                  sections: Int = 0,
+                  seekable: Boolean = false)
 
-  implicit class SFInfoOps(val info: Ptr[sf.SF_INFO]) extends AnyVal {
+  implicit class InfoOps(val info: Ptr[sf.INFO]) extends AnyVal {
     def frames: Long       = info._1
     def samplerate: Int    = info._2
     def channels: Int      = info._3
@@ -242,11 +247,11 @@ package object facade {
     def seekable_=(v: Int): Unit      = info._6 = v
   }
 
-  case class SFChunkInfo(id: String, data: ArraySeq[Byte])
+  case class ChunkInfo(id: String, data: ArraySeq[Byte])
 
   private val fileMap = new mutable.HashMap[Sndfile, mutable.HashSet[Ptr[Byte]]]
 
-  implicit class SFChunkInfoOps(val info: Ptr[sf.SF_CHUNK_INFO]) extends AnyVal {
+  implicit class ChunkInfoOps(val info: Ptr[sf.CHUNK_INFO]) extends AnyVal {
     def id: String = {
       val arr = new Array[Byte](info._2.toInt)
 
@@ -258,33 +263,46 @@ package object facade {
 
     def datalen: Int = info._3.toInt
 
-    def data: ArraySeq[Byte] = {}
+//    def data: ArraySeq[Byte] = {}
+
+    def id_=(s: String): Unit = {
+      val arr = s.getBytes
+
+      for (i <- arr.indices)
+        !info._1.at(i) = arr(i)
+
+      info._2 = arr.length.toUInt
+    }
   }
 
-  implicit class SFError(val num: CInt) extends AnyVal
+  implicit class Error(val num: CInt) extends AnyVal
 
-  lazy val SF_ERR_NO_ERROR: SFError             = SFError(0)
-  lazy val SF_ERR_UNRECOGNISED_FORMAT: SFError  = SFError(1)
-  lazy val SF_ERR_SYSTEM: SFError               = SFError(2)
-  lazy val SF_ERR_MALFORMED_FILE: SFError       = SFError(3)
-  lazy val SF_ERR_UNSUPPORTED_ENCODING: SFError = SFError(4)
+  lazy val ERR_NO_ERROR: Error             = Error(0)
+  lazy val ERR_UNRECOGNISED_FORMAT: Error  = Error(1)
+  lazy val ERR_SYSTEM: Error               = Error(2)
+  lazy val ERR_MALFORMED_FILE: Error       = Error(3)
+  lazy val ERR_UNSUPPORTED_ENCODING: Error = Error(4)
+
+  implicit class ChunkIterator(val iterator: sf.CHUNK_ITERATOR) extends AnyVal {}
+
   implicit class Sndfile(val sndfile: sf.SNDFILE) extends AnyVal {
 
     def seek(frames: Int, whence: Whence): Int = seekl(frames, whence).toInt
 
     def seekl(frames: Long, whence: Whence): Long = sf.sf_seek(sndfile, frames, whence.value)
 
-    def error: SFError = sf.sf_error(sndfile)
+    def error: Error = sf.sf_error(sndfile)
 
     def strerror: String = fromCString(sf.sf_strerror(sndfile))
 
-    def error_number(error: SFError): String = fromCString(sf.sf_error_number(error.num))
+    def error_number(error: Error): String = fromCString(sf.sf_error_number(error.num))
 
-    def close: SFError = {
+    def close: Error = {
       val res = sf.sf_close(sndfile)
 
-      for (c <- fileMap(sndfile)) {
-        stdlib.free(c.chunck.asInstanceOf[Ptr[Byte]])
+      fileMap get sndfile match {
+        case Some(ps) => ps foreach stdlib.free
+        case None     =>
       }
 
       res
@@ -333,9 +351,9 @@ package object facade {
     }
 
     def readf_short(dst: mutable.Seq[Short], frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.SF_INFO]
+      val sfinfo = stackalloc[sf.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
+      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -349,9 +367,9 @@ package object facade {
     }
 
     def readf_int(dst: mutable.Seq[Int], frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.SF_INFO]
+      val sfinfo = stackalloc[sf.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
+      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -365,9 +383,9 @@ package object facade {
     }
 
     def readf_float(dst: mutable.Seq[Float], frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.SF_INFO]
+      val sfinfo = stackalloc[sf.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
+      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -381,9 +399,9 @@ package object facade {
     }
 
     def readf_double(dst: mutable.Seq[Double], frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.SF_INFO]
+      val sfinfo = stackalloc[sf.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
+      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -433,9 +451,9 @@ package object facade {
     }
 
     def writef_short(src: Int => Short, frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.SF_INFO]
+      val sfinfo = stackalloc[sf.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
+      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -448,9 +466,9 @@ package object facade {
     }
 
     def writef_int(src: Int => Int, frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.SF_INFO]
+      val sfinfo = stackalloc[sf.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
+      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -463,9 +481,9 @@ package object facade {
     }
 
     def writef_float(src: Int => Float, frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.SF_INFO]
+      val sfinfo = stackalloc[sf.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
+      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -478,9 +496,9 @@ package object facade {
     }
 
     def writef_double(src: Int => Double, frames: Int): Int = Zone { implicit z =>
-      val sfinfo = stackalloc[sf.SF_INFO]
+      val sfinfo = stackalloc[sf.INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
+      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
 
       val channels = sfinfo.channels
       val samples  = channels * frames
@@ -494,29 +512,36 @@ package object facade {
 
     def get_string(field: Field): String = fromCString(sf.sf_get_string(sndfile, field.value))
 
-    def set_string(field: Field, str: String): SFError =
+    def set_string(field: Field, str: String): Error =
       Zone(implicit z => sf.sf_set_string(sndfile, field.value, toCString(str)))
 
     def current_byterate: Int = sf.sf_current_byterate(sndfile)
 
-//    def sf_command(cmd: Command, data: Ptr[Byte], datasize: CInt): CInt = sf.sf_command(sndfile, cmd.value)
-    def getCurrentSFInfo: SFInfo = {
-      val sfinfo = stackalloc[sf.SF_INFO]
+    def get_chunk_iterator(chunk: ChunkInfo): ChunkIterator = {
+      val info = stackalloc[sf.CHUNK_INFO]
 
-      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.SF_INFO].toInt)
-      SFInfo(sfinfo.frames,
-             sfinfo.samplerate,
-             sfinfo.channels,
-             sfinfo.format,
-             sfinfo.sections,
-             if (sfinfo.seekable == 0) false else true)
+      info.id = chunk.id
+      sf.sf_get_chunk_iterator(sndfile, info)
+    }
+
+    //    def sf_command(cmd: Command, data: Ptr[Byte], datasize: CInt): CInt = sf.sf_command(sndfile, cmd.value)
+    def getCurrentSFInfo: Info = {
+      val sfinfo = stackalloc[sf.INFO]
+
+      sf.sf_command(sndfile, SFC_GET_CURRENT_SF_INFO.value, sfinfo.asInstanceOf[Ptr[Byte]], sizeof[sf.INFO].toInt)
+      Info(sfinfo.frames,
+           sfinfo.samplerate,
+           sfinfo.channels,
+           sfinfo.format,
+           sfinfo.sections,
+           if (sfinfo.seekable == 0) false else true)
     }
 
   }
 
-  def open(path: String, mode: Mode, sfinfo: SFInfo = SFInfo(0, 0, 0, 0, 0, seekable = false)): (Sndfile, SFInfo) =
+  def open(path: String, mode: Mode, sfinfo: Info = Info(0, 0, 0, 0, 0, seekable = false)): (Sndfile, Info) =
     Zone { implicit z =>
-      val sfinfop = stackalloc[sf.SF_INFO]
+      val sfinfop = stackalloc[sf.INFO]
 
       sfinfop.frames = sfinfo.frames
       sfinfop.samplerate = sfinfo.samplerate
@@ -525,16 +550,16 @@ package object facade {
       sfinfop.sections = sfinfo.sections
       sfinfop.seekable = if (sfinfo.seekable) 1 else 0
       (sf.sf_open(toCString(path), mode.value, sfinfop),
-       SFInfo(sfinfop.frames,
-              sfinfop.samplerate,
-              sfinfop.channels,
-              sfinfop.format,
-              sfinfop.sections,
-              if (sfinfop.seekable == 0) false else true))
+       Info(sfinfop.frames,
+            sfinfop.samplerate,
+            sfinfop.channels,
+            sfinfop.format,
+            sfinfop.sections,
+            if (sfinfop.seekable == 0) false else true))
     }
 
-  def format_check(sfinfo: SFInfo): Boolean = Zone { implicit z =>
-    val sfinfop = stackalloc[sf.SF_INFO]
+  def format_check(sfinfo: Info): Boolean = Zone { implicit z =>
+    val sfinfop = stackalloc[sf.INFO]
 
     sfinfop.frames = sfinfo.frames
     sfinfop.samplerate = sfinfo.samplerate
