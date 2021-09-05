@@ -56,7 +56,7 @@ object Main extends App {
       val (error, info) = it.get_chunk_size
 
       if (error == ERR_NO_ERROR) {
-        println(info.id)
+        println(info.datalen)
         iterate(it.next_chunk_iterator)
       }
     }

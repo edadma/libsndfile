@@ -248,7 +248,7 @@ package object libsndfile {
     def seekable_=(v: Int): Unit      = info._6 = v
   }
 
-  case class ChunkInfo(id: String, datalen: Int, data: ArraySeq[Byte])
+  case class ChunkInfo(id: String, datalen: Int = 0, data: ArraySeq[Byte] = null)
 
   private val fileMap = new mutable.HashMap[Sndfile, mutable.HashSet[Ptr[Byte]]]
 
@@ -293,8 +293,12 @@ package object libsndfile {
       val info = stackalloc[LibSndfile.CHUNK_INFO]
       val res  = sf.sf_get_chunk_size(iterator, info)
 
-      if (res != ERR_NO_ERROR.num) (res, ChunkInfo(info.id, info.datalen, null))
-      else (res, null)
+      if (res == ERR_NO_ERROR.num) {
+        if (info.datalen == 0)
+          (res, ChunkInfo("", 0, null))
+        else
+          (res, ChunkInfo(info.id, info.datalen, null))
+      } else (res, null)
     }
   }
 
