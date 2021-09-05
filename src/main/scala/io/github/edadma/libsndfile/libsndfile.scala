@@ -4,7 +4,6 @@ import io.github.edadma.libsndfile.{LibSndfile => sf}
 
 import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
-
 import scala.scalanative.libc.stdlib
 import scala.scalanative.unsafe._
 import scala.scalanative.unsigned._
@@ -601,6 +600,18 @@ package object libsndfile {
       info.id = chunk.id
       info.datalen = chunk.data.length
       info.data = stdlib.malloc(info.datalen.toUInt)
+
+      val set =
+        fileMap get sndfile match {
+          case Some(set) => set
+          case None =>
+            val set = mutable.HashSet[Ptr[Byte]]()
+
+            fileMap(sndfile) = set
+            set
+        }
+
+      set += info.data
 
       for (i <- chunk.data.indices)
         info.data(i) = chunk.data(i)
