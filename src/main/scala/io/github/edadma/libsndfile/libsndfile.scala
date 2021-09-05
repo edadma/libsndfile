@@ -225,12 +225,12 @@ package object libsndfile {
 //    lazy val CHANNEL_MAP_MAX                   = new _6(27)
 //  }
 
-  case class Info(frames: Long,
-                  samplerate: Int,
-                  channels: Int,
-                  format: FormatType,
-                  sections: Int = 0,
-                  seekable: Boolean = false)
+  case class SFInfo(frames: Long,
+                    samplerate: Int,
+                    channels: Int,
+                    format: FormatType,
+                    sections: Int = 0,
+                    seekable: Boolean = false)
 
   implicit class InfoOps(val info: Ptr[LibSndfile.INFO]) extends AnyVal {
     def frames: Long       = info._1
@@ -248,7 +248,7 @@ package object libsndfile {
     def seekable_=(v: Int): Unit      = info._6 = v
   }
 
-  case class ChunkInfo(id: String, data: ArraySeq[Byte])
+  case class ChunkInfo(id: String, datalen: Int, data: ArraySeq[Byte])
 
   private val fileMap = new mutable.HashMap[Sndfile, mutable.HashSet[Ptr[Byte]]]
 
@@ -284,9 +284,22 @@ package object libsndfile {
   lazy val ERR_MALFORMED_FILE: Error       = Error(3)
   lazy val ERR_UNSUPPORTED_ENCODING: Error = Error(4)
 
-  implicit class ChunkIterator(val iterator: LibSndfile.CHUNK_ITERATOR) extends AnyVal {}
+  implicit class ChunkIterator(val iterator: LibSndfile.CHUNK_ITERATOR) extends AnyVal {
+    def isNull: Boolean = iterator eq null
+
+    def next_chunk_iterator: ChunkIterator = sf.sf_next_chunk_iterator(iterator)
+
+    def get_chunk_size: (Error, ChunkInfo) = {
+      val info = stackalloc[LibSndfile.CHUNK_INFO]
+      val res  = sf.sf_get_chunk_size(iterator, info)
+
+      if (res != ERR_NO_ERROR.num) (res, ChunkInfo(info.id, info.datalen, null))
+      else (res, null)
+    }
+  }
 
   implicit class Sndfile(val sndfile: LibSndfile.SNDFILE) extends AnyVal {
+    def isNull: Boolean = sndfile eq null
 
     def seek(frames: Int, whence: Whence): Int = seekl(frames, whence).toInt
 
@@ -543,31 +556,35 @@ package object libsndfile {
     def current_byterate: Int = sf.sf_current_byterate(sndfile)
 
     def get_chunk_iterator(chunk: ChunkInfo): ChunkIterator = {
-      val info = stackalloc[LibSndfile.CHUNK_INFO]
+      if (chunk eq null)
+        sf.sf_get_chunk_iterator(sndfile, null)
+      else {
+        val info = stackalloc[LibSndfile.CHUNK_INFO]
 
-      info.id = chunk.id
-      sf.sf_get_chunk_iterator(sndfile, info)
+        info.id = chunk.id
+        sf.sf_get_chunk_iterator(sndfile, info)
+      }
     }
 
     //    def sf_command(cmd: Command, data: Ptr[Byte], datasize: CInt): CInt = sf.sf_command(sndfile, cmd.value)
-    def getCurrentSFInfo: Info = {
+    def getCurrentSFInfo: SFInfo = {
       val sfinfo = stackalloc[LibSndfile.INFO]
 
       sf.sf_command(sndfile,
                     SFC_GET_CURRENT_SF_INFO.value,
                     sfinfo.asInstanceOf[Ptr[Byte]],
                     sizeof[LibSndfile.INFO].toInt)
-      Info(sfinfo.frames,
-           sfinfo.samplerate,
-           sfinfo.channels,
-           sfinfo.format,
-           sfinfo.sections,
-           if (sfinfo.seekable == 0) false else true)
+      SFInfo(sfinfo.frames,
+             sfinfo.samplerate,
+             sfinfo.channels,
+             sfinfo.format,
+             sfinfo.sections,
+             if (sfinfo.seekable == 0) false else true)
     }
 
   }
 
-  def open(path: String, mode: Mode, sfinfo: Info = Info(0, 0, 0, 0)): (Sndfile, Info) =
+  def open(path: String, mode: Mode, sfinfo: SFInfo = SFInfo(0, 0, 0, 0)): (Sndfile, SFInfo) =
     Zone { implicit z =>
       val sfinfop = stackalloc[LibSndfile.INFO]
 
@@ -578,15 +595,15 @@ package object libsndfile {
       sfinfop.sections = sfinfo.sections
       sfinfop.seekable = if (sfinfo.seekable) 1 else 0
       (sf.sf_open(toCString(path), mode.value, sfinfop),
-       Info(sfinfop.frames,
-            sfinfop.samplerate,
-            sfinfop.channels,
-            sfinfop.format,
-            sfinfop.sections,
-            if (sfinfop.seekable == 0) false else true))
+       SFInfo(sfinfop.frames,
+              sfinfop.samplerate,
+              sfinfop.channels,
+              sfinfop.format,
+              sfinfop.sections,
+              if (sfinfop.seekable == 0) false else true))
     }
 
-  def format_check(sfinfo: Info): Boolean = Zone { implicit z =>
+  def format_check(sfinfo: SFInfo): Boolean = Zone { implicit z =>
     val sfinfop = stackalloc[LibSndfile.INFO]
 
     sfinfop.frames = sfinfo.frames

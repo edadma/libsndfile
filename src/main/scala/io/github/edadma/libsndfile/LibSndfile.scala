@@ -41,7 +41,9 @@ object LibSndfile {
   def sf_set_string(sndfile: SNDFILE, field: CInt, str: CString): CInt                      = extern
   def sf_version_string: CString                                                            = extern
   def sf_current_byterate(sndfile: SNDFILE): CInt                                           = extern
-  def sf_get_chunk_iterator(sndfile: SNDFILE, chuck_info: Ptr[CHUNK_INFO]): CHUNK_ITERATOR  = extern
+  def sf_get_chunk_iterator(sndfile: SNDFILE, chunk_info: Ptr[CHUNK_INFO]): CHUNK_ITERATOR  = extern
+  def sf_next_chunk_iterator(iterator: CHUNK_ITERATOR): CHUNK_ITERATOR                      = extern
+  def sf_get_chunk_size(iterator: CHUNK_ITERATOR, chunk_info: Ptr[CHUNK_INFO]): CInt        = extern
 
   def sf_command(sndfile: SNDFILE, cmd: CInt, data: Ptr[Byte], datasize: CInt): CInt = extern
 
