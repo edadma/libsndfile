@@ -95,3 +95,5 @@ API documentation is forthcoming, however documentation for the C library is fou
 
 License
 -------
+
+[ISC](https://github.com/edadma/libsndfile/blob/main/LICENSE)
