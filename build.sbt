@@ -1,6 +1,6 @@
 name := "libsndfile"
 
-version := "0.1.1"
+version := "0.1.2"
 
 scalaVersion := "2.13.6"
 
@@ -10,7 +10,7 @@ nativeLinkStubs := true
 
 nativeMode := "debug"
 
-nativeLinkingOptions := Seq(s"-L/${baseDirectory.value}/native-lib")
+nativeLinkingOptions := Seq(s"-L${baseDirectory.value}/native-lib")
 
 scalacOptions ++= Seq("-deprecation",
                       "-feature",

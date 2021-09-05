@@ -248,7 +248,7 @@ package object libsndfile {
     def seekable_=(v: Int): Unit      = info._6 = v
   }
 
-  case class ChunkInfo(id: String, datalen: Int = 0, data: ArraySeq[Byte] = null)
+  case class ChunkInfo(id: String, datalen: Int = 0, data: mutable.Seq[Byte] = null)
 
   private val fileMap = new mutable.HashMap[Sndfile, mutable.HashSet[Ptr[Byte]]]
 
@@ -264,6 +264,8 @@ package object libsndfile {
 
     def datalen: Int = info._3.toInt
 
+    def datalen_=(v: Int): Unit = info._3 = v.toUInt
+
 //    def data: ArraySeq[Byte] = {}
 
     def id_=(s: String): Unit = {
@@ -274,6 +276,10 @@ package object libsndfile {
 
       info._2 = arr.length.toUInt
     }
+
+    def data: Ptr[Byte] = info._4
+
+    def data_=(ptr: Ptr[Byte]): Unit = info._4 = ptr
   }
 
   implicit class Error(val num: CInt) extends AnyVal
@@ -293,13 +299,43 @@ package object libsndfile {
       val info = stackalloc[LibSndfile.CHUNK_INFO]
       val res  = sf.sf_get_chunk_size(iterator, info)
 
-      if (res == ERR_NO_ERROR.num) {
+      if (res == ERR_NO_ERROR.num)
         if (info.datalen == 0)
           (res, ChunkInfo("", 0, null))
         else
           (res, ChunkInfo(info.id, info.datalen, null))
-      } else (res, null)
+      else (res, null)
     }
+
+    def get_chunk_data: (Error, ChunkInfo) = {
+      val info    = stackalloc[LibSndfile.CHUNK_INFO]
+      val sizeres = sf.sf_get_chunk_size(iterator, info)
+
+      if (sizeres == ERR_NO_ERROR.num)
+        if (info.datalen == 0)
+          (sizeres, ChunkInfo("", 0, null))
+        else {
+          info.data = stdlib.malloc(info.datalen.toUInt)
+
+          val datares = sf.sf_get_chunk_data(iterator, info)
+
+          if (datares == ERR_NO_ERROR.num)
+            if (info.datalen == 0) {
+              stdlib.free(info.data)
+              (datares, ChunkInfo("", 0, null))
+            } else {
+              val data = Array.ofDim[Byte](info.datalen)
+
+              for (i <- data.indices)
+                data(i) = info.data(i)
+
+              stdlib.free(info.data)
+              (datares, ChunkInfo(info.id, info.datalen, data))
+            } else (datares, null)
+        } else (sizeres, null)
+
+    }
+
   }
 
   implicit class Sndfile(val sndfile: LibSndfile.SNDFILE) extends AnyVal {
@@ -558,6 +594,19 @@ package object libsndfile {
       Zone(implicit z => sf.sf_set_string(sndfile, field.value, toCString(str)))
 
     def current_byterate: Int = sf.sf_current_byterate(sndfile)
+
+    def set_chunk(chunk: ChunkInfo): Error = {
+      val info = stackalloc[LibSndfile.CHUNK_INFO]
+
+      info.id = chunk.id
+      info.datalen = chunk.data.length
+      info.data = stdlib.malloc(info.datalen.toUInt)
+
+      for (i <- chunk.data.indices)
+        info.data(i) = chunk.data(i)
+
+      sf.sf_set_chunk(sndfile, info)
+    }
 
     def get_chunk_iterator(chunk: ChunkInfo): ChunkIterator = {
       if (chunk eq null)

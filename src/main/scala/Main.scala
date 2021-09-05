@@ -36,32 +36,32 @@
 //
 //}
 
-import io.github.edadma.libsndfile._
-
-import scala.annotation.tailrec
-
-object Main extends App {
-
-  val (sndfile, info) = open("sine.wav", SFM_READ)
-
-  if (sndfile.isNull) {
-    println("Error opening file")
-    sndfile.close
-    sys.exit(1)
-  }
-
-  @tailrec
-  def iterate(it: ChunkIterator): Unit =
-    if (!it.isNull) {
-      val (error, info) = it.get_chunk_size
-
-      if (error == ERR_NO_ERROR) {
-        println(info.datalen)
-        iterate(it.next_chunk_iterator)
-      }
-    }
-
-  iterate(sndfile.get_chunk_iterator(null))
-  sndfile.close
-
-}
+//import io.github.edadma.libsndfile._
+//
+//import scala.annotation.tailrec
+//
+//object Main extends App {
+//
+//  val (sndfile, info) = open("sine.wav", SFM_READ)
+//
+//  if (sndfile.isNull) {
+//    println("Error opening file")
+//    sndfile.close
+//    sys.exit(1)
+//  }
+//
+//  @tailrec
+//  def iterate(it: ChunkIterator): Unit =
+//    if (!it.isNull) {
+//      val (error, info) = it.get_chunk_size
+//
+//      if (error == ERR_NO_ERROR) {
+//        println(info)
+//        iterate(it.next_chunk_iterator)
+//      }
+//    }
+//
+//  iterate(sndfile.get_chunk_iterator(null))
+//  sndfile.close
+//
+//}
